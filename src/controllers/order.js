@@ -13,13 +13,15 @@ export const findAllOrder = (req, res) => {
 }
 
 // 查找某个订单
-export const findOrderById = (req, res) => {
-  Order.findById(req.query.id)
-    .then(orders => {
+export const findOrderById = async (req, res) => {
+  const orders = await Order.findById(req.query.id)
+  try {
+    if (orders) {
       res.json(orders)
-    }).catch(err => {
-      res.json(err)
-    })
+    }
+  } catch (err) {
+    res.json(err)
+  }
 }
 
 // 添加一条订单
