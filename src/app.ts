@@ -36,7 +36,7 @@ class Server {
   errorHandle () {
     this.app.use((err: any, req: Request, res: Response, next: NextFunction) => {
       Logger.error(err.stack)
-      res.status(5000).send('Something broke!')
+      res.status(500).send('Something broke!')
     })
   }
 
