@@ -1,6 +1,6 @@
-import mongoose from 'mongoose'
+import { Schema, model } from 'mongoose'
 
-const OrderSchema = mongoose.Schema({
+const OrderSchema = new Schema({
   channel: {
     type: String,
     required: true
@@ -26,4 +26,4 @@ const OrderSchema = mongoose.Schema({
   update_at: Date
 })
 
-export default mongoose.model('Order', OrderSchema)
+export default model('Order', OrderSchema)
