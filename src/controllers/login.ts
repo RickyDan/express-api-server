@@ -14,13 +14,19 @@ class Login {
       noise: 1,
       color: true
     })
-    req.session.captcha = captcha.text
+    req.session.captcha = captcha.text.toLowerCase()
     res.type('svg')
     res.status(200).send(captcha.data)
   }
 
   async login (req: Request, res: Response) {
-    const { email, password } = req.body
+    const { email, password, captcha } = req.body
+    if (!captcha) {
+      return res.status(401).json({ msg: 'captcha is a require property' })
+    }
+    if (req.session.captcha !== captcha) {
+      return res.status(401).json({ msg: 'Invalid captcha'})
+    }
     if (email && password) {
       try {
         const user: any = await User.findOne({
