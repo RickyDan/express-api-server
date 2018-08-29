@@ -19,12 +19,10 @@ var __importStar = (this && this.__importStar) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 const svg_captcha_1 = __importDefault(require("svg-captcha"));
-const user_1 = __importDefault(require("../models/user"));
+const user_model_1 = __importDefault(require("../models/user.model"));
 const jwt = __importStar(require("jsonwebtoken"));
 const bcrypt_service_1 = __importDefault(require("../services/bcrypt.service"));
 class Login {
-    constructor() {
-    }
     // 生成验证码
     captcha(req, res) {
         const captcha = svg_captcha_1.default.create({
@@ -37,22 +35,22 @@ class Login {
     }
     login(req, res) {
         return __awaiter(this, void 0, void 0, function* () {
-            const { email, password, captcha } = req.body;
+            const { username, password, captcha } = req.body;
             if (!captcha) {
                 return res.status(401).json({ msg: 'captcha is a require property' });
             }
             if (req.session.captcha !== captcha) {
                 return res.status(401).json({ msg: 'Invalid captcha' });
             }
-            if (email && password) {
+            if (username && password) {
                 try {
-                    const user = yield user_1.default.findOne({
-                        email
+                    const user = yield user_model_1.default.findOne({
+                        username
                     });
                     if (!user) {
                         return res.status(400).json({ msg: 'Bad Request: User not found' });
                     }
-                    const token = jwt.sign({ user: user }, 'Rick Dan');
+                    const token = jwt.sign({ user: user }, 'An express application');
                     if (bcrypt_service_1.default.comparePassword(password, user.password)) {
                         return res.status(200).json({ token, user });
                     }
@@ -62,22 +60,32 @@ class Login {
                     return res.status(500).json({ msg: 'Internal server error ' });
                 }
             }
-            return res.status(400).json({ msg: 'Bad Request: Email or password is wrong' });
+            return res.status(400).json({ msg: 'Bad Request: Username or password is wrong' });
         });
     }
     register(req, res, next) {
         return __awaiter(this, void 0, void 0, function* () {
-            const user = new user_1.default({
-                email: req.body.email,
-                password: req.body.password,
-                username: req.body.username
+            const { mobile, password, username } = req.body;
+            if (!username) {
+                return res.status(400).json({ message: 'Username is a require property' });
+            }
+            if (!mobile) {
+                return res.status(400).json({ message: 'Mobile is a require property' });
+            }
+            if (!password) {
+                return res.status(400).json({ message: 'Password is a require property' });
+            }
+            const user = new user_model_1.default({
+                mobile,
+                password,
+                username
             });
-            user_1.default.findOne({ email: req.body.email }, (err, existingUser) => {
+            user_model_1.default.findOne({ username }, (err, existingUser) => {
                 if (err) {
                     return next(err);
                 }
                 if (existingUser) {
-                    res.status(400).json({ message: 'Account with that email address already exists ' });
+                    res.status(400).json({ message: 'Username address already exists ' });
                     return;
                 }
                 user.save((err) => {
@@ -91,4 +99,4 @@ class Login {
     }
 }
 exports.default = new Login();
-//# sourceMappingURL=login.js.map
+//# sourceMappingURL=user.controller.js.map

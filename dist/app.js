@@ -11,8 +11,10 @@ const cookie_parser_1 = __importDefault(require("cookie-parser"));
 const morgan_1 = __importDefault(require("morgan"));
 const logger_1 = __importDefault(require("./logger"));
 const routes_1 = __importDefault(require("./routes"));
-const users_1 = __importDefault(require("./routes/users"));
-const order_1 = __importDefault(require("./routes/order"));
+const users_route_1 = __importDefault(require("./routes/users.route"));
+const supplier_route_1 = __importDefault(require("./routes/supplier.route"));
+const goods_route_1 = __importDefault(require("./routes/goods.route"));
+const order_route_1 = __importDefault(require("./routes/order.route"));
 class Server {
     constructor() {
         this.app = express_1.default();
@@ -56,8 +58,10 @@ class Server {
     registerRouters() {
         logger_1.default.info('registerRouters...');
         this.app.use('/', routes_1.default);
-        this.app.use('/user', users_1.default);
-        this.app.use('/orders', order_1.default);
+        this.app.use('/user', users_route_1.default);
+        this.app.use('/supplier', supplier_route_1.default);
+        this.app.use('/goods', goods_route_1.default);
+        this.app.use('/orders', order_route_1.default);
         this.app.use((req, res, next) => {
             res.status(404).send('404 Not Found');
         });

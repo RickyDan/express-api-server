@@ -5,12 +5,34 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 const bcrypt_nodejs_1 = __importDefault(require("bcrypt-nodejs"));
 const mongoose_1 = __importDefault(require("mongoose"));
-const userSchema = new mongoose_1.default.Schema({
-    email: { type: String, unique: true, required: true },
-    password: { type: String, required: true },
-    username: { type: String, required: true, unique: true }
-}, { timestamps: true });
-userSchema.pre('save', function save(next) {
+const mongoose_2 = require("mongoose");
+const schema = new mongoose_2.Schema({
+    username: {
+        type: String,
+        required: [true, 'username is a require property']
+    },
+    mobile: {
+        type: String,
+        required: true
+    },
+    password: {
+        type: String,
+        required: true
+    },
+    nickname: String,
+    summary: String,
+    userImg: String,
+    gender: String,
+    editTime: {
+        type: Date,
+        default: Date.now
+    },
+    createdTime: {
+        type: Date,
+        default: Date.now
+    }
+}, { versionKey: false });
+schema.pre('save', function save(next) {
     const user = this;
     if (!user.isModified('password')) {
         return next();
@@ -33,7 +55,7 @@ const comparePassword = function (candidatePassword, cb) {
         cb(err, isMatch);
     });
 };
-userSchema.methods.comparePassword = comparePassword;
-const User = mongoose_1.default.model('User', userSchema);
+schema.methods.comparePassword = comparePassword;
+const User = mongoose_1.default.model('User', schema);
 exports.default = User;
-//# sourceMappingURL=user.js.map
+//# sourceMappingURL=user.model.js.map

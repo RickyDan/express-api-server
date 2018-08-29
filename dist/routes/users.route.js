@@ -4,11 +4,11 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 const express_1 = __importDefault(require("express"));
-const login_1 = __importDefault(require("../controllers/login"));
+const user_controller_1 = __importDefault(require("../controllers/user.controller"));
 const router = express_1.default.Router();
 /* GET users listing. */
-router.get('/captcha', login_1.default.captcha);
-router.post('/signin', login_1.default.login);
-router.post('/signup', login_1.default.register);
+router.get('/captcha', user_controller_1.default.captcha);
+router.post('/signin', user_controller_1.default.login);
+router.post('/signup', user_controller_1.default.register);
 exports.default = router;
-//# sourceMappingURL=users.js.map
+//# sourceMappingURL=users.route.js.map

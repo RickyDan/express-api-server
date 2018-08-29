@@ -7,12 +7,13 @@ import cookieParser from 'cookie-parser';
 import logger from 'morgan'
 import Logger from './logger'
 import indexRouter from './routes'
-import usersRouter from './routes/users'
-import orderRouter from './routes/order'
+import usersRouter from './routes/users.route'
+import supplierRouter from './routes/supplier.route'
+import goodsRouter from './routes/goods.route'
+import orderRouter from './routes/order.route'
 
 class Server {
   private app: express.Application
-
   constructor () {
     this.app = express()
   }
@@ -60,6 +61,8 @@ class Server {
     Logger.info('registerRouters...')
     this.app.use('/', indexRouter)
     this.app.use('/user', usersRouter)
+    this.app.use('/supplier', supplierRouter)
+    this.app.use('/goods', goodsRouter)
     this.app.use('/orders', orderRouter)
     this.app.use((req: Request, res: Response, next: NextFunction) => {
       res.status(404).send('404 Not Found')

@@ -1,13 +1,10 @@
 import { Request, Response, NextFunction } from 'express'
 import svgCaptcha from 'svg-captcha'
-import User from '../models/user'
+import User from '../models/user.model'
 import * as jwt from 'jsonwebtoken'
 import bcryptService from '../services/bcrypt.service'
 
 class Login {
-  constructor () {
-  }
-
   // 生成验证码
   captcha (req: Request, res: Response) {
     const captcha = svgCaptcha.create({
@@ -20,22 +17,22 @@ class Login {
   }
 
   async login (req: Request, res: Response) {
-    const { email, password, captcha } = req.body
+    const { username, password, captcha } = req.body
     if (!captcha) {
       return res.status(401).json({ msg: 'captcha is a require property' })
     }
     if (req.session.captcha !== captcha) {
       return res.status(401).json({ msg: 'Invalid captcha'})
     }
-    if (email && password) {
+    if (username && password) {
       try {
         const user: any = await User.findOne({
-          email
+          username
         })
         if (!user) {
           return res.status(400).json({ msg: 'Bad Request: User not found' })
         }
-        const token = jwt.sign({ user: user }, 'Rick Dan')
+        const token = jwt.sign({ user: user }, 'An express application')
         if (bcryptService.comparePassword(password, user.password)) {
           return res.status(200).json({ token, user })
         }
@@ -44,19 +41,29 @@ class Login {
         return res.status(500).json({ msg: 'Internal server error '})
       }
     }
-    return res.status(400).json({ msg: 'Bad Request: Email or password is wrong' })
+    return res.status(400).json({ msg: 'Bad Request: Username or password is wrong' })
   }
 
   async register (req: Request, res: Response, next: NextFunction) {
+    const { mobile, password, username } = req.body
+    if (!username) {
+      return res.status(400).json({ message: 'Username is a require property' })
+    }
+    if (!mobile) {
+      return res.status(400).json({ message: 'Mobile is a require property' })
+    }
+    if (!password) {
+      return res.status(400).json({ message: 'Password is a require property' })
+    }
     const user = new User({
-      email: req.body.email,
-      password: req.body.password,
-      username: req.body.username
+      mobile,
+      password,
+      username
     })
-    User.findOne({ email: req.body.email }, (err, existingUser) => {
+    User.findOne({ username }, (err, existingUser) => {
       if (err) { return next(err) }
       if (existingUser) {
-        res.status(400).json({ message: 'Account with that email address already exists ' })
+        res.status(400).json({ message: 'Username address already exists ' })
         return
       }
       user.save((err) => {
