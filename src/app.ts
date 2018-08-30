@@ -1,5 +1,9 @@
 import createError from 'http-errors'
 import express, { Request, Response, NextFunction } from 'express'
+import fs from 'fs'
+import path from 'path'
+import http from 'http'
+import https from 'https'
 import mongoose from 'mongoose'
 import config from './config'
 import session from 'express-session'
@@ -12,12 +16,15 @@ import supplierRouter from './routes/supplier.route'
 import goodsRouter from './routes/goods.route'
 import orderRouter from './routes/order.route'
 
+const privateKey = fs.readFileSync(path.resolve(__dirname, '../ca/private.pem'), 'utf-8')
+const certificate = fs.readFileSync(path.resolve(__dirname, '../ca/file.crt'), 'utf-8')
+const credentials = {key: privateKey, cert: certificate}
+const app = express()
+const httpServer = http.createServer(app)
+const httpsServer = https.createServer(credentials, app)
 class Server {
-  private app: express.Application
-  constructor () {
-    this.app = express()
-  }
-
+  private static PORT = 18080
+  private static SSLPORT = 18081
   connectDB () {
     const options = { useNewUrlParser: true }
     const url = config.dbUrl
@@ -36,7 +43,7 @@ class Server {
 
   // 错误处理
   errorHandle () {
-    this.app.use((err: any, req: Request, res: Response, next: NextFunction) => {
+    app.use((err: any, req: Request, res: Response, next: NextFunction) => {
       Logger.error(err.stack)
       res.status(500).send('Something broke!')
     })
@@ -45,11 +52,11 @@ class Server {
   // 注册中间件
   initMiddlewares () {
     Logger.info('initMiddlewares...')
-    this.app.use(logger('dev'))
-    this.app.use(express.json())
-    this.app.use(express.urlencoded({ extended: false }))
-    this.app.use(cookieParser())
-    this.app.use(session({
+    app.use(logger('dev'))
+    app.use(express.json())
+    app.use(express.urlencoded({ extended: false }))
+    app.use(cookieParser())
+    app.use(session({
       secret: 'my_session_secret', // 建议使用 128 个字符的随机字符串
       resave: true,
       saveUninitialized: false,
@@ -59,12 +66,12 @@ class Server {
   // 注册路由
   registerRouters () {
     Logger.info('registerRouters...')
-    this.app.use('/', indexRouter)
-    this.app.use('/user', usersRouter)
-    this.app.use('/supplier', supplierRouter)
-    this.app.use('/goods', goodsRouter)
-    this.app.use('/orders', orderRouter)
-    this.app.use((req: Request, res: Response, next: NextFunction) => {
+    app.use('/', indexRouter)
+    app.use('/user', usersRouter)
+    app.use('/supplier', supplierRouter)
+    app.use('/goods', goodsRouter)
+    app.use('/orders', orderRouter)
+    app.use((req: Request, res: Response, next: NextFunction) => {
       res.status(404).send('404 Not Found')
     })
   }
@@ -78,9 +85,12 @@ class Server {
 
   listen () {
     this.config()
-    this.app.listen(config.app.port)
-    Logger.info('Server is listening port: ' + config.app.port)
-    Logger.info(config.baseUrl)
+    httpServer.listen(Server.PORT, () => {
+      Logger.info('HTTP Server is running on: http://localhost:%s', Server.PORT)
+    })
+    httpsServer.listen(Server.SSLPORT, () => {
+      Logger.info('HTTPS Server is running on: http://localhost:%s', Server.SSLPORT)
+    })
   }
 
   static initialize () {
